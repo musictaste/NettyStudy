@@ -14,6 +14,7 @@ public class ServerWithThreadGroup {
     public static void main(String[] args) throws Exception {
 
         ExecutorService executorService = Executors.newCachedThreadPool();
+        //可以把客户端进行分组，每一组都对应一个threadGroup，而这个threadGroup可以有好多个线程池帮我们做事，现在是一个线程池
         AsynchronousChannelGroup threadGroup = AsynchronousChannelGroup.withCachedThreadPool(executorService, 1);
 
         //中文测试

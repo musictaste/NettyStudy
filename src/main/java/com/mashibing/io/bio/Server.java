@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
+    //实际开发不能抛出异常，要捕获异常
     public static void main(String[] args) throws IOException {
         ServerSocket ss = new ServerSocket();
         ss.bind(new InetSocketAddress("127.0.0.1", 8888));
@@ -20,6 +21,7 @@ public class Server {
 
     }
 
+    //把客户端的数据读进来再写回去
     static void handle(Socket s) {
         try {
             byte[] bytes = new byte[1024];

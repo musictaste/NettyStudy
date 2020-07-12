@@ -15,6 +15,7 @@ public class Client {
     }
 
     private void clientStart() {
+        //EventLoopGroup可以指定数量
         EventLoopGroup workers = new NioEventLoopGroup();
         Bootstrap b = new Bootstrap();
         b.group(workers)

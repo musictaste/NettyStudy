@@ -26,10 +26,14 @@ class NettyServer {
     }
 
     public void serverStart() {
+        //两个线程池：大管家(负责客户端连接)、工人（负责连接以后的IO处理）
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         ServerBootstrap b = new ServerBootstrap();
 
+        //通道类型：NioServerSocketChannel
+        //通道(SocketChannel)要连接时，给一个监听器：childHandler；这个监听器的处理过程是：当通道初始化以后，在这个通道上加一个通道的处理器Handler（又是一个监听器）
+        //Netty的好处就是将连接的代码和业务的代码分开
         b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
@@ -55,6 +59,8 @@ class NettyServer {
 }
 
 class Handler extends ChannelInboundHandlerAdapter {
+    //读数据的操作，handler处理器都不需要处理
+    //数据读进来以后，对数据进行解析；
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         //super.channelRead(ctx, msg);
@@ -71,6 +77,7 @@ class Handler extends ChannelInboundHandlerAdapter {
     }
 
 
+    //通道的异常处理，一般要将通道关闭
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         //super.exceptionCaught(ctx, cause);
