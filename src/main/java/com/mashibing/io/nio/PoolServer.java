@@ -121,9 +121,10 @@ class ThreadHandlerChannel extends Thread{
 
                 channel.close();
             }else{
-                //
+                //读完以后，还要重新注册READ事件
+                //位运算，去除OP_READ，相当于Iterator.remove()
                 key.interestOps(key.interestOps()|SelectionKey.OP_READ);
-                key.selector().wakeup();
+                key.selector().wakeup();//读完以后，要通知大管家
             }
         }catch (Exception e) {
             System.out.println(e.getMessage());

@@ -15,8 +15,13 @@ public class Client {
     }
 
     private void clientStart() {
-        //EventLoopGroup可以指定数量
+        //线程池：EventLoopGroup可以指定数量
+        //EventLoopGroup,循环不停处理事件的线程池，用于处理Channel上的所有事件，
+        // 读源码发现，如果是一个线程池默认为你机器的内核数(CPU)*2
         EventLoopGroup workers = new NioEventLoopGroup();
+
+        //辅助启动类，类似解鞋带
+        //NioSocketChannel.class指定为非阻塞版，如果想指定阻塞版，换成BIO
         Bootstrap b = new Bootstrap();
         b.group(workers)
                 .channel(NioSocketChannel.class)
@@ -31,6 +36,11 @@ public class Client {
 
         try {
             System.out.println("start to connect...");
+            //connect方法是一个异步方法，所以想让Channel成功连接才能继续执行，需要加sync()；
+            //sync()返回的是ChannelFuture（Future在多线程中有讲）
+            //netty中所有方法都是异步方法
+
+            //SocketChannel什么时候初始化，是在调用了connect()，才能触发handler中的initChannel
             ChannelFuture f = b.connect("127.0.0.1", 8888).sync();
 
             f.channel().closeFuture().sync();
@@ -39,6 +49,7 @@ public class Client {
             e.printStackTrace();
 
         } finally {
+            //优雅的关闭
             workers.shutdownGracefully();
         }
 
@@ -51,7 +62,7 @@ class ClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("channel is activated.");
-
+        //ChannelFuture中有没有成功，需要
         final ChannelFuture f = ctx.writeAndFlush(Unpooled.copiedBuffer("HelloNetty".getBytes()));
         f.addListener(new ChannelFutureListener() {
             @Override

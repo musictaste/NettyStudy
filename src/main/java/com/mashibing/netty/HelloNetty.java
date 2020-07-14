@@ -34,8 +34,12 @@ class NettyServer {
         //通道类型：NioServerSocketChannel
         //通道(SocketChannel)要连接时，给一个监听器：childHandler；这个监听器的处理过程是：当通道初始化以后，在这个通道上加一个通道的处理器Handler（又是一个监听器）
         //Netty的好处就是将连接的代码和业务的代码分开
+
+        //handler()是在加在了Server整个面板上以及Client连上来的所有SocketChannel上
+        //childHandler是SocketChannel已经连接了，加在它的孩子们身上，也就是加载Client客户端上面
         b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
+//                .handler()
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {

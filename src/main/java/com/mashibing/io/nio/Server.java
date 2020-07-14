@@ -14,7 +14,7 @@ public class Server {
     public static void main(String[] args) throws IOException {
         ServerSocketChannel ssc = ServerSocketChannel.open();
         ssc.socket().bind(new InetSocketAddress("127.0.0.1", 8888));
-        ssc.configureBlocking(false);//设置非阻塞
+        ssc.configureBlocking(false);//很关键：设置非阻塞
 
         System.out.println("server started, listening on :" + ssc.getLocalAddress());
         Selector selector = Selector.open();//打开一个Selector
@@ -28,6 +28,8 @@ public class Server {
             Iterator<SelectionKey> it = keys.iterator();
             while(it.hasNext()) {
                 SelectionKey key = it.next();
+                //先移除后处理，是因为保证在多线程的情况下也没有问题；
+                //如果是先处理后移除，在多线程的情况下，另一个线程会再次拿到key进行处理
                 it.remove();
                 handle(key);
             }
