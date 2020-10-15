@@ -1,4 +1,4 @@
-package com.mashibing.netty;
+package com.learn.nettystudy.netty.v2;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -25,14 +25,7 @@ public class Client {
         Bootstrap b = new Bootstrap();
         b.group(workers)
                 .channel(NioSocketChannel.class)
-                .handler(new ChannelInitializer<SocketChannel>() {
-
-                    @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
-                        System.out.println("channel initialized!");
-                        ch.pipeline().addLast(new ClientHandler());
-                    }
-                });
+                .handler(new ClientInitializer());
 
         try {
             System.out.println("start to connect...");
@@ -58,12 +51,30 @@ public class Client {
 
 }
 
+class ClientInitializer extends ChannelInitializer<SocketChannel> {
+
+    @Override
+    protected void initChannel(SocketChannel ch) throws Exception {
+        System.out.println("channel initialized!");
+        ch.pipeline().addLast(new ClientHandler());
+    }
+}
+
 class ClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        //channel第一次连上可用，写出一个字符串
         System.out.println("channel is activated.");
+
+        //因为NIO的ByteBuffer太难用，所以Netty自己封装了ByteBuf，并且效率特别高
+        //Jvm有自己的内存，操作系统也有自己的内存；以前如果需要操作数据的话，需要将数据从操作系统的内存中读到jvm的内存中
+        //现在ByteBuf可以直接访问操作系统的内存，也就是Direct Memory直接内存，所以效率高
+        //而使用直接内存会跳过java的垃圾回收机制，会占用系统内存，需要进行释放
+        ByteBuf buf = Unpooled.copiedBuffer("HelloNetty".getBytes());
+
+        //因为ByteBuf是使用直接内存，使用完是要进行内存释放的(否则造成内存泄漏)；writeAndFlush方法会进行自动内存释放
         //ChannelFuture中有没有成功，需要
-        final ChannelFuture f = ctx.writeAndFlush(Unpooled.copiedBuffer("HelloNetty".getBytes()));
+        final ChannelFuture f = ctx.writeAndFlush(buf);
         f.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
@@ -75,13 +86,22 @@ class ClientHandler extends ChannelInboundHandlerAdapter {
 
     }
 
+    //Object不是泛型，因为Netty从低版本的时候没有使用泛型，也一直没有进行修改
+    //SimpleChannelInboundHandler这个类是有泛型的，需要跟Codec配合使用才能实现泛型
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        ByteBuf buf = null;
         try {
-            ByteBuf buf = (ByteBuf)msg;
-            System.out.println(buf.toString());
+            //在netty中往外写的所有内容都要转成ByteBuf,所以需要将msg转成ByteBuf
+            buf= (ByteBuf)msg;
+            System.out.println(buf.toString());//PooledUnsafeDirectByteBuf(ridx: 0, widx: 10, cap: 1024)
+            System.out.println(buf.refCnt());//查看有几个引用
         } finally {
-            ReferenceCountUtil.release(msg);
+            if(buf !=null){
+                ReferenceCountUtil.release(buf);
+            }
+            System.out.println(buf.refCnt());
         }
     }
 }

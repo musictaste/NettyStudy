@@ -1,4 +1,4 @@
-package com.mashibing.io.nio;
+package com.learn.nettystudy.io.nio;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -44,8 +44,8 @@ public class Server {
                 ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
                 SocketChannel sc = ssc.accept();
                 sc.configureBlocking(false);//设置为非阻塞；如果不设置，依然是阻塞模型
+                System.out.println(sc.getRemoteAddress());
                 //new Client
-                //
                 //String hostIP = ((InetSocketAddress)sc.getRemoteAddress()).getHostString();
 
 			/*
@@ -69,7 +69,8 @@ public class Server {
             SocketChannel sc = null;
             try {
                 sc = (SocketChannel)key.channel();
-                ByteBuffer buffer = ByteBuffer.allocate(512);
+                ByteBuffer buffer = ByteBuffer.allocate(512); //堆内存
+//                ByteBuffer.allocateDirect();//堆外内存
                 buffer.clear();
                 int len = sc.read(buffer);
 

@@ -1,4 +1,4 @@
-package com.mashibing.io.nio;
+package com.learn.nettystudy.io.nio;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,7 +25,7 @@ public class PoolServer {
      */
     public static void main(String[] args) throws IOException {
         PoolServer server = new PoolServer();
-        server.initServer(8000);
+        server.initServer(8888);
         server.listen();
     }
 
@@ -35,13 +35,9 @@ public class PoolServer {
      * @throws IOException
      */
     public void initServer(int port) throws IOException {
-        //
         ServerSocketChannel serverChannel = ServerSocketChannel.open();
-        //
         serverChannel.configureBlocking(false);
-        //
         serverChannel.socket().bind(new InetSocketAddress(port));
-        //
         this.selector = Selector.open();
 
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
@@ -56,9 +52,7 @@ public class PoolServer {
     public void listen() throws IOException {
         // 轮询访问selector  
         while (true) {
-            //
             selector.select();
-            //
             Iterator ite = this.selector.selectedKeys().iterator();
             while (ite.hasNext()) {
                 SelectionKey key = (SelectionKey) ite.next();
@@ -67,15 +61,11 @@ public class PoolServer {
                 //
                 if (key.isAcceptable()) {
                     ServerSocketChannel server = (ServerSocketChannel) key.channel();
-                    //
                     SocketChannel channel = server.accept();
-                    //
+                    System.out.println(channel.getRemoteAddress());
                     channel.configureBlocking(false);
-                    //
                     channel.register(this.selector, SelectionKey.OP_READ);
-                    //
                 } else if (key.isReadable()) {
-                    //
                     key.interestOps(key.interestOps()&(~SelectionKey.OP_READ));
                     //关键：任务交给线程池去处理
                     pool.execute(new ThreadHandlerChannel(key));
@@ -97,11 +87,8 @@ class ThreadHandlerChannel extends Thread{
     }
     @Override
     public void run() {
-        //
         SocketChannel channel = (SocketChannel) key.channel();
-        //
         ByteBuffer buffer = ByteBuffer.allocate(1024);
-        //
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             int size = 0;
@@ -111,14 +98,14 @@ class ThreadHandlerChannel extends Thread{
                 buffer.clear();
             }
             baos.close();
-            //
+
             byte[] content=baos.toByteArray();
+            System.out.println(new String(content));
             ByteBuffer writeBuf = ByteBuffer.allocate(content.length);
             writeBuf.put(content);
             writeBuf.flip();
-            channel.write(writeBuf);//
+            channel.write(writeBuf);
             if(size==-1){
-
                 channel.close();
             }else{
                 //读完以后，还要重新注册READ事件

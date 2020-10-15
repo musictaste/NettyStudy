@@ -1,4 +1,4 @@
-package com.mashibing.io.aio;
+package com.learn.nettystudy.io.aio;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -13,9 +13,12 @@ public class Server {
         final AsynchronousServerSocketChannel serverChannel = AsynchronousServerSocketChannel.open()
                 .bind(new InetSocketAddress(8888));
 
+        System.out.println("服务器启动，等待连接");
+
         //现在accept是非阻塞的，连上以后就走了
         //把CompletionHandler的代码交给操作系统；一个客户端连接上来，由操作系统来调用CompletionHandler的代码
         //本身这个是一个observer观察者模式（也叫回调函数、钩子函数）
+        //事件源对象(client)、观察者(CompletionHandler)、事件(completed,failed)
         serverChannel.accept(null, new CompletionHandler<AsynchronousSocketChannel, Object>() {
             //completed说明客户端已经连上来了
             //attachment传的是臭名昭著的ByteBuffer
